@@ -1,68 +1,99 @@
-import { Box } from "@/components/ui/box";
-import { Table, TableHeader, TableBody, TableHead, TableRow, TableData } from "@/components/ui/table";
-	
-export function HomeScreen(){
+import React, { useEffect, useState } from 'react';
+import { View, Text, FlatList, ActivityIndicator, TouchableOpacity, StyleSheet } from 'react-native';
+import { collection, getDocs } from 'firebase/firestore';
+import {db} from '../../constants/firebaseConfig';
+import { Input, InputField, InputIcon, InputSlot } from "@/components/ui/input"
+import { SearchIcon } from "@/components/ui/icon"
+
+export default function HomeScreen(){
+  const [products, setProducts] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  const fetchProducts = async () => {
+    try {
+      const productsCol = collection(db, 'products'); // 'products' is the collection name
+      const snapshot = await getDocs(productsCol);
+      const list = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      setProducts(list);
+      setLoading(false);
+    } catch (error) {
+      console.error("Error fetching products:", error);
+    }
+  };
+
+  useEffect(() => {
+    fetchProducts();
+  }, []);
+
+  if (loading) {
+    return <ActivityIndicator size="large" style={{ flex: 1, justifyContent: 'center' }} />;
+  }
+
+
     return (
-         <Box className="p-3 bg-background- rounded-lg overflow-hidden">
-      <Table className="w-full">
-        <TableHeader>
-          <TableRow className="border-b-0 bg-background-0 hover:bg-background-0">
-            <TableHead className="font-bold">Order id</TableHead>
-            <TableHead>Items</TableHead>
-            <TableHead>Name</TableHead>
-            <TableHead>City</TableHead>
-            <TableHead>Order price</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          <TableRow className="border-b-0 bg-background-50">
-            <TableData>5771</TableData>
-            <TableData>3</TableData>
-            <TableData>Rajesh Kumar</TableData>
-            <TableData>New Jersey</TableData>
-            <TableData>$ 200</TableData>
-          </TableRow>
-          <TableRow className="border-b-0 hover:bg-background-0">
-            <TableData>5231</TableData>
-            <TableData>2</TableData>
-            <TableData>Priya Sharma</TableData>
-            <TableData>Austin</TableData>
-            <TableData>$ 150</TableData>
-          </TableRow>
-          <TableRow className="border-b-0 bg-background-50">
-            <TableData>5771</TableData>
-            <TableData>3</TableData>
-            <TableData>Ravi Patel</TableData>
-            <TableData>Seattle</TableData>
-            <TableData>$ 215</TableData>
-          </TableRow>
-          <TableRow className="border-b-0 hover:bg-background-0">
-            <TableData>5231</TableData>
-            <TableData>4</TableData>
-            <TableData>Ananya Gupta</TableData>
-            <TableData>California</TableData>
-            <TableData>$ 88</TableData>
-           
-          </TableRow>
-          <TableRow className="border-b-0 bg-background-50">
-            <TableData>5771</TableData>
-            <TableData>3</TableData>
-            <TableData>Arjun Singh</TableData>
-            <TableData>Seattle</TableData>
-            <TableData>$ 115</TableData>
-          
-          </TableRow>
-          <TableRow className="border-b-0 bg-background-0 hover:bg-background-0">
-            <TableData>5771</TableData>
-            <TableData>3</TableData>
-            <TableData>Nisha Verma</TableData>
-            <TableData>Seattle</TableData>
-            <TableData>$ 115</TableData>
-          </TableRow>
-        </TableBody>
-      </Table>
-    </Box>
-    )
+      <>
+      <Input>
+        <InputSlot className="pl-3">
+          <InputIcon as={SearchIcon} />
+        </InputSlot>
+        <InputField placeholder="Search..." />
+      </Input>
+      
+      <FlatList
+          data={products}
+          keyExtractor={item => item.id}
+          contentContainerStyle={{ padding: 16 }}
+          renderItem={({ item }) => (
+            <View style={{
+              backgroundColor: '#eaffea', // Light parrot green
+              borderRadius: 12,
+              padding: 16,
+              marginBottom: 12,
+              shadowColor: '#000',
+              shadowOffset: { width: 0, height: 2 },
+              shadowOpacity: 0.1,
+              shadowRadius: 4,
+              elevation: 3, // for Android shadow
+            }}>
+              <Text style={{ fontSize: 14, fontWeight: 'bold', color: 'black' }}>
+                {item.product_name ?? "Unnamed Product"}
+              </Text>
+              {/* {item.manufacturers?.map((m: string, index: number) => (
+                  <Text key={index} style={{ color: '#388e3c', marginTop: 4 }}>
+                    • {m}
+                  </Text>
+                ))} */}
+            </View>
+          )} /></>
+    );
 }
 
-export default HomeScreen
+// const styles = StyleSheet.create({
+//   loader: {
+//     flex: 1,
+//     justifyContent: 'center',
+//   },
+//   listContainer: {
+//     padding: 16,
+//   },
+//   card: {
+//     backgroundColor: '#fff',
+//     borderRadius: 16,
+//     padding: 20,
+//     marginBottom: 12,
+//     shadowColor: '#000',
+//     shadowOpacity: 0.05,
+//     shadowRadius: 6,
+//     elevation: 3,
+//   },
+//   productName: {
+//     fontSize: 18,
+//     fontWeight: '600',
+//     marginBottom: 8,
+//     color: '#222',
+//   },
+//   manufacturer: {
+//     fontSize: 14,
+//     color: '#666',
+//   },
+// });
